@@ -13,6 +13,12 @@ export default `
     teams: [Team!]!
   }
 
+  type RegisterResponse {
+    ok: Boolean!
+    user: User
+    errors:[Error!]
+  }
+
   type Query {
     getUser(id: Int!): User!
     allUsers: [User!]!
@@ -23,7 +29,9 @@ export default `
   }
 
   type Mutation {
-    register(username:String!,email:String!, password:String!): Boolean!
+    register(username:String!,email:String!, password:String!): RegisterResponse!
   }
+
+  
 
 `;
