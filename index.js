@@ -18,7 +18,7 @@ const schema = makeExecutableSchema({
 
 const graphqlEndpoint = '/graphql';
 const app = express();
-app.use(cors('*'));
+app.use(cors('*`'));
 
 app.use(
   graphqlEndpoint,

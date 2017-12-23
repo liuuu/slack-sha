@@ -22,4 +22,8 @@ export default `
     createUser(username: String!, email: String!, password: String!): User!
   }
 
+  type Mutation {
+    register(username:String!,email:String!, password:String!): Boolean!
+  }
+
 `;
