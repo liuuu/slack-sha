@@ -5,7 +5,9 @@ import { makeExecutableSchema } from 'graphql-tools';
 import path from 'path';
 import { fileLoader, mergeTypes, mergeResolvers } from 'merge-graphql-schemas';
 import cors from 'cors';
+import jwt from 'jsonwebtoken';
 import models from './models';
+import { refreshTokens } from './auth';
 
 const typeDefs = mergeTypes(fileLoader(path.join(__dirname, './schema')));
 
@@ -23,22 +25,42 @@ const graphqlEndpoint = '/graphql';
 const app = express();
 app.use(cors('*`'));
 
-// pass context as default params to resolver function
+const addUser = async (req, res, next) => {
+  const token = req.headers['x-token'];
+  if (token) {
+    try {
+      const { user } = jwt.verify(token, SECRET);
+      req.user = user;
+    } catch (err) {
+      const refreshToken = req.headers['x-refresh-token'];
+      const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
+      if (newTokens.token && newTokens.refreshToken) {
+        // send back to client
+        res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
+        res.set('x-token', newTokens.token);
+        res.set('x-refresh-token', newTokens.refreshToken);
+      }
+      req.user = newTokens.user;
+    }
+  }
+  next();
+};
 
+app.use(addUser);
+
+// pass context as default params to resolver function
 app.use(
   graphqlEndpoint,
   bodyParser.json(),
-  graphqlExpress({
+  graphqlExpress(req => ({
     schema,
     context: {
       models,
-      user: {
-        id: 1,
-      },
+      user: req.user,
       SECRET,
       SECRET2,
     },
-  }),
+  })),
 );
 
 app.use('/graphiql', graphiqlExpress({ endpointURL: graphqlEndpoint }));
