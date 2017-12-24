@@ -11,6 +11,9 @@ const typeDefs = mergeTypes(fileLoader(path.join(__dirname, './schema')));
 
 const resolvers = mergeResolvers(fileLoader(path.join(__dirname, './resolvers')));
 
+const SECRET = 'sdfdsfsdf435jk3l4j53l4';
+const SECRET2 = 'sdfdsfsdfd309450834509jdjs';
+
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
@@ -19,6 +22,8 @@ const schema = makeExecutableSchema({
 const graphqlEndpoint = '/graphql';
 const app = express();
 app.use(cors('*`'));
+
+// pass context as default params to resolver function
 
 app.use(
   graphqlEndpoint,
@@ -30,6 +35,8 @@ app.use(
       user: {
         id: 1,
       },
+      SECRET,
+      SECRET2,
     },
   }),
 );
