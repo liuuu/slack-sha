@@ -29,10 +29,13 @@ const addUser = async (req, res, next) => {
   const token = req.headers['x-token'];
   if (token) {
     try {
+      // encrypt the token with user.id, decode the token
       const { user } = jwt.verify(token, SECRET);
       req.user = user;
     } catch (err) {
       const refreshToken = req.headers['x-refresh-token'];
+
+      // POTENTIAL BUGS
       const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
       if (newTokens.token && newTokens.refreshToken) {
         // send back to client
