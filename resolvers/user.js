@@ -31,6 +31,7 @@ export default {
           user,
         };
       } catch (err) {
+        // validation info from models
         return {
           ok: false,
           errors: formatErrors(err, models),
