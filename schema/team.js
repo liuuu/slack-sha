@@ -7,9 +7,14 @@ export default `
     channels: [Channel!]!
   }
 
-   type CreateTeamResponse {
+  type CreateTeamResponse {
     ok: Boolean!
     team:Team!
+    errors: [Error!]
+  }
+
+  type VoidResponse {
+    ok: Boolean!
     errors: [Error!]
   }
 
@@ -19,6 +24,7 @@ export default `
 
   type Mutation {
     createTeam(name: String!): CreateTeamResponse!
+     addTeamMember(email: String!, teamId: Int!): VoidResponse!
   }
 
 `;
