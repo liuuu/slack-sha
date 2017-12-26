@@ -1,6 +1,6 @@
 import { PubSub, withFilter } from 'graphql-subscriptions';
 
-import requiresAuth from '../permissions';
+import requiresAuth, { requiresTeamAccess } from '../permissions';
 
 const pubsub = new PubSub();
 
@@ -17,7 +17,9 @@ export default {
   // type Query {
   //   messages(channelId: Int!) : [Message!]!
   // }
+
   // there's a sub-query inside the type Message called user
+  // automatic query
   // recieve parent as first params
   Message: {
     user: ({ user, userId }, args, { models }) => {
@@ -31,10 +33,10 @@ export default {
 
   Subscription: {
     newChannelMessage: {
-      subscribe: withFilter(
+      subscribe: requiresTeamAccess.createResolver(withFilter(
         () => pubsub.asyncIterator(NEW_CHANNEL_MESSAGE),
         (payload, args) => payload.channelId === args.channelId,
-      ),
+      )),
     },
   },
 
