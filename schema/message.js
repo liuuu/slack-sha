@@ -16,4 +16,8 @@ export default `
     messages(channelId: Int!) : [Message!]!
   }
 
+  type Subscription {
+    newChannelMessage(channelId:Int!) :Message!
+  }
+
 `;
