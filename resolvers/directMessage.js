@@ -1,6 +1,28 @@
-import requiresAuth from '../permissions';
+import { withFilter } from 'graphql-subscriptions';
+import chalk from 'chalk';
+import requiresAuth, { directMessageSubscription } from '../permissions';
+
+import pubsub from '../pubSub';
+
+const NEW_DIRECT_MESSAGE = 'NEW_DIRECT_MESSAGE';
 
 export default {
+  Subscription: {
+    newDirectMessage: {
+      subscribe: directMessageSubscription.createResolver(withFilter(
+        () => pubsub.asyncIterator(NEW_DIRECT_MESSAGE),
+        (payload, args, { user }) => {
+          console.log(chalk.red(payload));
+          console.log(chalk.red(args.userId));
+          return (
+            payload.teamId === args.teamId &&
+              ((payload.senderId === user.id && payload.receiverId === args.userId) ||
+                (payload.senderId === args.userId && payload.receiverId === user.id))
+          );
+        },
+      )),
+    },
+  },
   // sub-query of return type DirectMessage
   DirectMessage: {
     sender: ({ sender, senderId }, args, { models }) => {
@@ -11,6 +33,7 @@ export default {
       return models.User.findOne({ where: { id: senderId } }, { raw: true });
     },
   },
+
   Query: {
     directMessages: requiresAuth.createResolver(async (parent, { teamId, otherUserId }, { models, user }) =>
       models.DirectMessage.findAll(
@@ -39,21 +62,17 @@ export default {
           senderId: user.id,
         });
 
-        // const asyncFunc = async () => {
-        //   const currentUser = await models.User.findOne({
-        //     where: {
-        //       id: user.id,
-        //     },
-        //   });
-
-        //   pubsub.publish(NEW_CHANNEL_MESSAGE, {
-        //     channelId: args.channelId,
-        //     newChannelMessage: {
-        //       ...message.dataValues,
-        //       user: currentUser.dataValues,
-        //     },
-        //   });
-        // };
+        pubsub.publish(NEW_DIRECT_MESSAGE, {
+          teamId: args.teamId,
+          senderId: user.id,
+          receiverId: args.receiverId,
+          newDirectMessage: {
+            ...directMessage.dataValues,
+            sender: {
+              username: user.username,
+            },
+          },
+        });
 
         // asyncFunc();
 

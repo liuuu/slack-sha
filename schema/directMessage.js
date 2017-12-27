@@ -12,4 +12,7 @@ export default `
   type Mutation {
     createDirectMessage(receiverId: Int!, text: String!, teamId: Int!): Boolean!
   }
+   type Subscription {
+    newDirectMessage(teamId:Int!, userId:Int) :DirectMessage!
+  }
 `;
