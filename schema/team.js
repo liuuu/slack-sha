@@ -5,6 +5,7 @@ export default `
     members: [User!]!
     channels: [Channel!]!
     admin: Boolean!
+    directMessageMembers: [User!]!
   }
   type CreateTeamResponse {
     ok: Boolean!
