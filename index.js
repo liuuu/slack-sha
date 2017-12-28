@@ -42,7 +42,13 @@ const addUser = async (req, res, next) => {
       const refreshToken = req.headers['x-refresh-token'];
 
       // POTENTIAL BUGS
-      const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
+      const newTokens = await refreshTokens(
+        token,
+        refreshToken,
+        models,
+        SECRET,
+        SECRET2,
+      );
       if (newTokens.token && newTokens.refreshToken) {
         // send back to client
         res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
@@ -56,6 +62,7 @@ const addUser = async (req, res, next) => {
 };
 
 app.use(addUser);
+app.use('/files', express.static('files'));
 
 // pass context as default params to resolver function
 app.use(
@@ -98,7 +105,13 @@ models.sequelize.sync({}).then(() => {
               const { user } = jwt.verify(token, SECRET);
               return { models, user };
             } catch (err) {
-              const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
+              const newTokens = await refreshTokens(
+                token,
+                refreshToken,
+                models,
+                SECRET,
+                SECRET2,
+              );
               return { models, user: newTokens.user };
             }
           }
