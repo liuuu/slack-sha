@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _graphqlRedisSubscriptions = require('graphql-redis-subscriptions');
 
-var REDIS_DOMAIN_NAME = 'http://127.0.0.1'; // import { PubSub } from 'graphql-subscriptions/dist/pubsub';
+var REDIS_DOMAIN_NAME = process.env.REDIS_HOST || '127.0.0.1'; // import { PubSub } from 'graphql-subscriptions/dist/pubsub';
 
 // export default new PubSub();
 
@@ -25,13 +25,20 @@ var PORT_NUMBER = '6379';
 //   subscriber: new Redis(options),
 // });
 
+// export default new RedisPubSub({
+//   host: process.env.REDIS_HOST || '127.0.0.1',
+//   port: '6379',
+//   retry_strategy: optionss =>
+//     // reconnect after
+//     Math.max(optionss.attempt * 100, 3000),
+// });
+
 exports.default = new _graphqlRedisSubscriptions.RedisPubSub({
-  host: REDIS_DOMAIN_NAME,
-  port: PORT_NUMBER,
-  retry_strategy: function retry_strategy(optionss) {
-    return (
-      // reconnect after
-      Math.max(optionss.attempt * 100, 3000)
-    );
+  connection: {
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: 6379,
+    retry_strategy: function retry_strategy(options) {
+      return Math.max(options.attempt * 100, 3000);
+    }
   }
 });

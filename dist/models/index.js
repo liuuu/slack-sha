@@ -16,6 +16,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var sequelize = new _sequelize2.default('slack', 'postgres', 'postgres', {
   dialect: 'postgres',
+  host: process.env.DB_HOST || 'localhost',
   define: {
     underscored: true
   }
