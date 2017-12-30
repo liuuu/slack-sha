@@ -12,8 +12,10 @@ import { execute, subscribe } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 
-import models from './models';
+// import models from './models';
+import getModels from './models';
 import { refreshTokens } from './auth';
+import { resolve } from 'url';
 
 const typeDefs = mergeTypes(fileLoader(path.join(__dirname, './schema')));
 
@@ -31,53 +33,9 @@ const graphqlEndpoint = '/graphql';
 const app = express();
 app.use(cors('*`'));
 
-const addUser = async (req, res, next) => {
-  const token = req.headers['x-token'];
-  if (token) {
-    try {
-      // encrypt the token with user.id, decode the token
-      const { user } = jwt.verify(token, SECRET);
-      req.user = user;
-    } catch (err) {
-      const refreshToken = req.headers['x-refresh-token'];
-
-      // POTENTIAL BUGS
-      const newTokens = await refreshTokens(
-        token,
-        refreshToken,
-        models,
-        SECRET,
-        SECRET2,
-      );
-      if (newTokens.token && newTokens.refreshToken) {
-        // send back to client
-        res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
-        res.set('x-token', newTokens.token);
-        res.set('x-refresh-token', newTokens.refreshToken);
-      }
-      req.user = newTokens.user;
-    }
-  }
-  next();
-};
-
-app.use(addUser);
 app.use('/files', express.static('files'));
 
 // pass context as default params to resolver function
-app.use(
-  graphqlEndpoint,
-  bodyParser.json(),
-  graphqlExpress(req => ({
-    schema,
-    context: {
-      models,
-      user: req.user,
-      SECRET,
-      SECRET2,
-    },
-  })),
-);
 
 // add endpoint here
 app.use(
@@ -90,42 +48,131 @@ app.use(
 
 const server = createServer(app);
 
-models.sequelize.sync({}).then(() => {
-  // app.listen(8888);
-  server.listen(8888, () => {
-    // eslint-disable-next-line
-    new SubscriptionServer(
-      {
-        execute,
-        subscribe,
-        schema,
-        onConnect: async ({ token, refreshToken }, webSocket) => {
-          if (token && refreshToken) {
-            try {
-              const { user } = jwt.verify(token, SECRET);
-              return { models, user };
-            } catch (err) {
-              const newTokens = await refreshTokens(
-                token,
-                refreshToken,
-                models,
-                SECRET,
-                SECRET2,
-              );
-              return { models, user: newTokens.user };
-            }
-          }
+getModels().then((models) => {
+  if (!models) {
+    console.log('could not');
+    return null;
+  }
 
-          return { models };
+  models.sequelize.sync({}).then(() => {
+    // app.listen(8888);
+    server.listen(8888, () => {
+      // eslint-disable-next-line
+      new SubscriptionServer(
+        {
+          execute,
+          subscribe,
+          schema,
+          onConnect: async ({ token, refreshToken }, webSocket) => {
+            if (token && refreshToken) {
+              try {
+                const { user } = jwt.verify(token, SECRET);
+                return { models, user };
+              } catch (err) {
+                const newTokens = await refreshTokens(
+                  token,
+                  refreshToken,
+                  models,
+                  SECRET,
+                  SECRET2,
+                );
+                return { models, user: newTokens.user };
+              }
+            }
+
+            return { models };
+          },
         },
-      },
-      {
-        server,
-        path: '/subscriptions',
-      },
-    );
+        {
+          server,
+          path: '/subscriptions',
+        },
+      );
+    });
   });
+  const addUser = async (req, res, next) => {
+    const token = req.headers['x-token'];
+    if (token) {
+      try {
+        // encrypt the token with user.id, decode the token
+        const { user } = jwt.verify(token, SECRET);
+        req.user = user;
+      } catch (err) {
+        const refreshToken = req.headers['x-refresh-token'];
+
+        // POTENTIAL BUGS
+        const newTokens = await refreshTokens(
+          token,
+          refreshToken,
+          models,
+          SECRET,
+          SECRET2,
+        );
+        if (newTokens.token && newTokens.refreshToken) {
+          // send back to client
+          res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
+          res.set('x-token', newTokens.token);
+          res.set('x-refresh-token', newTokens.refreshToken);
+        }
+        req.user = newTokens.user;
+      }
+    }
+    next();
+  };
+
+  app.use(addUser);
+  app.use(
+    graphqlEndpoint,
+    bodyParser.json(),
+    graphqlExpress(req => ({
+      schema,
+      context: {
+        models,
+        user: req.user,
+        SECRET,
+        SECRET2,
+      },
+    })),
+  );
 });
+
+// models.sequelize.sync({}).then(() => {
+//   // app.listen(8888);
+//   server.listen(8888, () => {
+//     // eslint-disable-next-line
+//     new SubscriptionServer(
+//       {
+//         execute,
+//         subscribe,
+//         schema,
+//         onConnect: async ({ token, refreshToken }, webSocket) => {
+//           if (token && refreshToken) {
+//             try {
+//               const { user } = jwt.verify(token, SECRET);
+//               return { models, user };
+//             } catch (err) {
+//               const newTokens = await refreshTokens(
+//                 token,
+//                 refreshToken,
+//                 models,
+//                 SECRET,
+//                 SECRET2,
+//               );
+//               return { models, user: newTokens.user };
+//             }
+//           }
+
+//           return { models };
+//         },
+//       },
+//       {
+//         server,
+//         path: '/subscriptions',
+//       },
+//     );
+//   });
+// });
+
 // models.sequelize.sync({ force: true }).then(() => {
 //   app.listen(8888);
 // });
