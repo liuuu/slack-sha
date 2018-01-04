@@ -39,7 +39,7 @@ export default {
             { transaction },
           );
           await models.Channel.create(
-            { name: 'general', public: true, teamId: team.id },
+            { name: 'bugs', public: true, teamId: team.id },
             { transaction },
           );
           await models.Member.create(
