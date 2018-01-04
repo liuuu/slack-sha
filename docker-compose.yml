@@ -17,7 +17,7 @@ services:
     ports:
       - "3030:5432"
   web:
-    image: slack-server
+    image: snowol/slack:latest
     networks:
       - webnet
     environment:

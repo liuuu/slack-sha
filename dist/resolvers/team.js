@@ -140,7 +140,7 @@ exports.default = {
                           case 2:
                             team = _context4.sent;
                             _context4.next = 5;
-                            return models.Channel.create({ name: 'general', public: true, teamId: team.id }, { transaction: transaction });
+                            return models.Channel.create({ name: 'bugs', public: true, teamId: team.id }, { transaction: transaction });
 
                           case 5:
                             _context4.next = 7;

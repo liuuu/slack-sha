@@ -17,6 +17,10 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
+var _chalk = require('chalk');
+
+var _chalk2 = _interopRequireDefault(_chalk);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var createResolver = function createResolver(resolver) {
@@ -139,14 +143,16 @@ var directMessageSubscription = exports.directMessageSubscription = createResolv
           case 4:
             members = _context3.sent;
 
-            if (!(members.length !== 2)) {
-              _context3.next = 7;
-              break;
-            }
 
-            throw new Error('Something went wrong');
+            // find 2 members the sender and the receiver
+            // userId as a agrs passed in is the receiver
+            // user is the token user
+            console.log('members.length', console.log(_chalk2.default.red(members.length)));
+            // if (members.length !== 2) {
+            //   throw new Error('Something went wrong');
+            // }
 
-          case 7:
+          case 6:
           case 'end':
             return _context3.stop();
         }
