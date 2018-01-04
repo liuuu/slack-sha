@@ -1,3 +1,5 @@
+import chalk from 'chalk';
+
 const createResolver = (resolver) => {
   const baseResolver = resolver;
   baseResolver.createResolver = (childResolver) => {
@@ -46,7 +48,8 @@ export const directMessageSubscription = createResolver(async (parent, { teamId,
     // find 2 members the sender and the receiver
     // userId as a agrs passed in is the receiver
     // user is the token user
-  if (members.length !== 2) {
-    throw new Error('Something went wrong');
-  }
+  console.log('members.length', console.log(chalk.red(members.length)));
+  // if (members.length !== 2) {
+  //   throw new Error('Something went wrong');
+  // }
 });
